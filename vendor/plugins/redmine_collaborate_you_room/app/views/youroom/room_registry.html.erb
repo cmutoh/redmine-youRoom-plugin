@@ -4,8 +4,8 @@
 
 <div class="box tabular">
   youRoomのルーム番号
-  <%= f.text_field :room_num ,:value => @project_room.nil? ? '' : @project_room.room_num %>
-  <%= f.hidden_field :project_id , :value => @project.identifier %>
+  <%= f.text_field :room_num ,:value => @project_room.blank? ? '' : @project_room.room_num %>
+  <%= f.hidden_field :project_id , :value => @project.id %>
 </div>
 
 
