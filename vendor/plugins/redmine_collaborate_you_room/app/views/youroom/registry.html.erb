@@ -1,0 +1,12 @@
+<% form_for(:project , :url => {:controller => 'youroom',:action => 'room_update'}) do |f| %>
+  <%= f.error_messages %>
+
+<div class="box tabular">
+  youRoomのルーム番号
+  <%= f.text_field :room_num ,:value => @project_room.nil? ? '' : @project_room.room_num %>
+  <%= f.hidden_field :project_id , :value => @project.id %>
+</div>
+
+
+<%= f.submit((@project.nil? || @project.new_record?) ? l(:button_create) : l(:button_save), :disabled => @project.nil?) %>
+<% end %>

@@ -137,11 +137,31 @@ class IssuesController < ApplicationController
 
   def create
     call_hook(:controller_issues_new_before_save, { :params => params, :issue => @issue })
+    project_room = ProjectRoom.find_by_project_id(@project.id)
+    oauth_token = OauthToken.find_by_user_id(User.current.id)
+    if !params[:youroom].blank?
+      if project_room.nil? || project_room.room_num.blank?
+        flash[:notice] = "youRoomのルーム番号をSETしてください"
+        render :action => 'new'
+        return
+      end
+    end
     if @issue.save
       attachments = Attachment.attach_files(@issue, params[:attachments])
       render_attachment_warning_if_needed(@issue)
       flash[:notice] = l(:notice_successful_create)
       call_hook(:controller_issues_new_after_save, { :params => params, :issue => @issue})
+
+      unless params[:youroom].blank?
+        if oauth_token.nil? || oauth_token.access_token.blank?
+          params.merge :controller => 'youroom',:action => 'get_access_token'
+          redirect_to params.merge :controller => 'youroom',:action => 'get_access_token'
+          return
+        else 
+          YouroomController.new.post_to_youroom request
+        end
+      end
+
       respond_to do |format|
         format.html {
           redirect_to(params[:continue] ? { :action => 'new', :issue => {:tracker_id => @issue.tracker, :parent_issue_id => @issue.parent_issue_id}.reject {|k,v| v.nil?} } :
@@ -394,6 +414,7 @@ class IssuesController < ApplicationController
     end
     render :layout => false
   end
+
   
 private
   def find_issue
@@ -435,8 +456,6 @@ private
     @edit_allowed = User.current.allowed_to?(:edit_issues, @project)
     @time_entry = TimeEntry.new
     
-    @notes = params[:notes]
-    @issue.init_journal(User.current, @notes)
     # User can change issue attributes only if he has :edit permission or if a workflow transition is allowed
     if (@edit_allowed || !@allowed_statuses.empty?) && params[:issue]
       attrs = params[:issue].dup
@@ -485,4 +504,6 @@ private
       return false
     end
   end
+
+
 end
