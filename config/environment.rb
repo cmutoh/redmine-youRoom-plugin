@@ -59,4 +59,6 @@ Rails::Initializer.run do |config|
   end
 
   config.action_controller.session = { :key => "_myapp_session", :secret => "30mojiijouirenaitookorareruxxx"}
+  CONSUMER_KEY = "twHMFWVkNhCBQaaaEiCg"
+  CONSUMER_SECRET = "damJeepVucxKtgVVh7yaGpLUoN1nVMrT6pF7cZW4"
 end
