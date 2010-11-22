@@ -76,7 +76,7 @@ p   post_res = access_token_obj.post("https://www.youroom.in/r/#{room_num}/entri
   end
 
   def room_registry
-    @project_room = ProjectRoom.find_by_project_id(@project.id)
+    @project_room = ProjectRoom.find_by_project_id(params[:project_id])
     #@project = Project.find(params[:project_id])
   end
 
@@ -90,9 +90,9 @@ p   post_res = access_token_obj.post("https://www.youroom.in/r/#{room_num}/entri
       @project_room.update_attributes(:room_num => room_num)
     end
     flash[:notice] = "登録しました。"
-    #@project = Project.find(params[:project][:project_id])
+    @project = Project.find(params[:project][:project_id])
     #@project.update_attributes(:room_num => room_num)
-    redirect_to :action => 'room_registry',:project_id => project_id
+    redirect_to :action => 'room_registry',:project_id => @project
   end
 
   private
