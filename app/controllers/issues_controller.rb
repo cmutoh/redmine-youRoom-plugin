@@ -141,7 +141,7 @@ class IssuesController < ApplicationController
     oauth_token = OauthToken.find_by_user_id(User.current.id)
     if !params[:youroom].blank?
       if project_room.nil? || project_room.room_num.blank?
-        flash[:notice] = "youRoomのルーム番号をSETしてください"
+        flash.now[:error] = "youRoomのルーム番号を登録してください"
         render :action => 'new'
         return
       end
