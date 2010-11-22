@@ -76,8 +76,8 @@ p   post_res = access_token_obj.post("https://www.youroom.in/r/#{room_num}/entri
   end
 
   def room_registry
+    p @project = Project.find_by_identifier(params[:project_id])
     @project_room = ProjectRoom.find_by_project_id(params[:project_id])
-    #@project = Project.find(params[:project_id])
   end
 
   def room_update
