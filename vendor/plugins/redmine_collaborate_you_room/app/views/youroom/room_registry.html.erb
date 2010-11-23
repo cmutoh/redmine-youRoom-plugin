@@ -1,11 +1,10 @@
 <h2>youRoom登録</h2>
-<% form_for(:project , :url => {:controller => 'youroom',:action => 'room_update'}) do |f| %>
+<% form_for(:project , :url => {:controller => 'youroom',:action => 'room_update',:project_id => @project}) do |f| %>
   <%= f.error_messages %>
 
 <div class="box tabular">
   youRoomのルーム番号
-  <%= f.text_field :room_num ,:value => @project_room.blank? ? '' : @project_room.room_num %>
-  <%= f.hidden_field :project_id , :value => @project.id %>
+  <%= f.text_field :room_num ,:value => @project_room.blank? || @project_room.room_num.nil? ? '' : @project_room.room_num %>
 </div>
 
 

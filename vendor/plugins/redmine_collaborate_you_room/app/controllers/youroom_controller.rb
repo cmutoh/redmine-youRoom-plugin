@@ -24,7 +24,7 @@ class YouroomController < ApplicationController
    issue_subject = "Subject : #{issue.subject}"
    pj_name = "PJ Name : #{project.name}"
    room_num = ProjectRoom.find_by_project_id(project.id).room_num 
-   issue_url = "#{root_url}/issue/#{issue.id}"
+   issue_url = "#{root_url}/issues/#{issue.id}"
    
    entry = %W|#{tag} #{issue_status} #{issue_url} #{issue_id} #{issue_subject} #{pj_name}|.join("\r\n")
    entry = entry[0..139] if entry.size >= 140
@@ -76,12 +76,13 @@ p   post_res = access_token_obj.post("https://www.youroom.in/r/#{room_num}/entri
   end
 
   def room_registry
-    p @project = Project.find_by_identifier(params[:project_id])
-    @project_room = ProjectRoom.find_by_project_id(2)
+  #  p @project = Project.find_by_identifier(params[:project_id])
+    p "room_registry"
+    p @project_room = ProjectRoom.find_by_project_id(Project.find(params[:project_id]).id)
   end
 
   def room_update
-    project_id = params[:project][:project_id]
+    project_id = Project.find(params[:project_id]).id
     room_num = params[:project][:room_num]
     @project_room = ProjectRoom.find_by_project_id(project_id)
     if @project_room.nil?
@@ -90,7 +91,8 @@ p   post_res = access_token_obj.post("https://www.youroom.in/r/#{room_num}/entri
       @project_room.update_attributes(:room_num => room_num)
     end
     flash[:notice] = "登録しました。"
-    @project = Project.find(params[:project][:project_id])
+    p "room_update"
+   p  @project = Project.find(params[:project_id])
     #@project.update_attributes(:room_num => room_num)
     redirect_to :action => 'room_registry',:project_id => @project
   end
