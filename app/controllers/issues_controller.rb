@@ -141,7 +141,7 @@ class IssuesController < ApplicationController
     @project_room = ProjectRoom.find_by_project_id(@project.id)
     oauth_token = OauthToken.find_by_user_id(User.current.id)
     if !params[:youroom].blank?
-      if project_room.nil? || project_room.room_num.blank?
+      if @project_room.nil? || @project_room.room_num.blank?
         flash.now[:error] = "youRoomのルーム番号を登録してください"
         render :action => 'new'
         return
@@ -200,10 +200,10 @@ class IssuesController < ApplicationController
   def update
     update_issue_from_params
 
-    project_room = ProjectRoom.find_by_project_id(@project.id)
+    @project_room = ProjectRoom.find_by_project_id(@project.id)
     oauth_token = OauthToken.find_by_user_id(User.current.id)
     if !params[:youroom].blank?
-      if project_room.nil? || project_room.room_num.blank?
+      if @project_room.nil? || @project_room.room_num.blank?
         flash.now[:error] = "youRoomのルーム番号を登録してください"
         render :action => 'edit'
         return
