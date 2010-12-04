@@ -7,8 +7,8 @@ class YouroomController < ApplicationController
   before_filter :find_project,:only => :room_registry
   before_filter :authorize,:only => :room_registry
  
-  def post_to_youroom request, notes
-    issue = Issue.find_all_by_author_id(User.current.id).last
+  def post_to_youroom request, notes, id
+    issue = Issue.find(id)
     project = issue.project
 
     default_port = (request.scheme=="http") ? 80:443
@@ -63,6 +63,7 @@ class YouroomController < ApplicationController
       session[:request_token] = request_token.token
       session[:request_token_secret] = request_token.secret
       session[:notes] = params[:notes]
+      session[:issue_id] = params[:issue_id]
 
       redirect_to request_token.authorize_url
   end
@@ -86,7 +87,7 @@ class YouroomController < ApplicationController
     end
 
     #post処理
-    post_to_youroom request, session[:notes]
+    post_to_youroom request, session[:notes], session[:issue_id]
 
     post_issue = Issue.find_all_by_author_id(User.current.id).last
   #  project_identifier = post_issue.project.identifier
