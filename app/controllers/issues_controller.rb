@@ -132,12 +132,13 @@ class IssuesController < ApplicationController
   # Add a new issue
   # The new issue will be created from an existing one if copy_from parameter is given
   def new
+    @project_room = ProjectRoom.find_by_project_id(@project.id)
     render :action => 'new', :layout => !request.xhr?
   end
 
   def create
     call_hook(:controller_issues_new_before_save, { :params => params, :issue => @issue })
-    project_room = ProjectRoom.find_by_project_id(@project.id)
+    @project_room = ProjectRoom.find_by_project_id(@project.id)
     oauth_token = OauthToken.find_by_user_id(User.current.id)
     if !params[:youroom].blank?
       if project_room.nil? || project_room.room_num.blank?
@@ -158,7 +159,7 @@ class IssuesController < ApplicationController
           redirect_to params.merge :controller => 'youroom',:action => 'get_access_token'
           return
         else 
-          YouroomController.new.post_to_youroom request
+          YouroomController.new.post_to_youroom request,params[:notes]
         end
       end
 
@@ -185,6 +186,7 @@ class IssuesController < ApplicationController
   UPDATABLE_ATTRS_ON_TRANSITION = %w(status_id assigned_to_id fixed_version_id done_ratio) unless const_defined?(:UPDATABLE_ATTRS_ON_TRANSITION)
   
   def edit
+    @project_room = ProjectRoom.find_by_project_id(@project.id)
     update_issue_from_params
 
     @journal = @issue.current_journal
@@ -198,9 +200,29 @@ class IssuesController < ApplicationController
   def update
     update_issue_from_params
 
+    project_room = ProjectRoom.find_by_project_id(@project.id)
+    oauth_token = OauthToken.find_by_user_id(User.current.id)
+    if !params[:youroom].blank?
+      if project_room.nil? || project_room.room_num.blank?
+        flash.now[:error] = "youRoomのルーム番号を登録してください"
+        render :action => 'edit'
+        return
+      end
+    end
+
     if @issue.save_issue_with_child_records(params, @time_entry)
       render_attachment_warning_if_needed(@issue)
       flash[:notice] = l(:notice_successful_update) unless @issue.current_journal.new_record?
+
+      unless params[:youroom].blank?
+        if oauth_token.nil? || oauth_token.access_token.blank?
+          params.merge :controller => 'youroom',:action => 'get_access_token'
+          redirect_to params.merge :controller => 'youroom',:action => 'get_access_token'
+          return
+        else 
+          YouroomController.new.post_to_youroom request,params[:notes]
+        end
+      end
 
       respond_to do |format|
         format.html { redirect_back_or_default({:action => 'show', :id => @issue}) }

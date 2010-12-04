@@ -1,10 +1,19 @@
 <h2>youRoom登録</h2>
-<% form_for(:project , :url => {:controller => 'youroom',:action => 'room_update',:project_id => @project}) do |f| %>
+<% form_for(:project_room , :url => {:controller => 'youroom',:action => 'room_update',:project_id => @project}) do |f| %>
   <%= f.error_messages %>
 
 <div class="box tabular">
-  youRoomのルーム番号
-  <%= f.text_field :room_num ,:value => @project_room.blank? || @project_room.room_num.nil? ? '' : @project_room.room_num %>
+  <table>
+    <tr>
+    <th align=right> youRoomのルーム番号</th>
+    <td><%= f.text_field :room_num ,:value => @project_room.blank? || @project_room.room_num.nil? ? '' : @project_room.room_num %></td>
+  </tr>
+  <tr>
+  
+  <th align=right> デフォルトでyouRoomへ投稿にチェックをつける</th>
+  <td><%= f.check_box :post_check, {:checked => @project_room.blank? ? false : @project_room.post_check}%></td>
+</tr>
+</table>
 </div>
 
 
