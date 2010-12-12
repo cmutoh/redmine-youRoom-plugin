@@ -90,8 +90,7 @@ class YouroomController < ApplicationController
     #post処理
     post_to_youroom request, session[:notes], session[:issue_id]
 
-    post_issue = Issue.find_all_by_author_id(User.current.id).last
-  #  project_identifier = post_issue.project.identifier
+    post_issue = Issue.find(session[:issue_id])  #  project_identifier = post_issue.project.identifier
     project = post_issue.project
 
     redirect_to(session[:continue] ? { :controller => 'issues', :action => 'new', :project_id => project.id,:issue => {:tracker_id => post_issue.tracker, :parent_issue_id => post_issue.parent_issue_id}.reject {|k,v| v.nil?} } :
