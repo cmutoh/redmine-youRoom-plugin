@@ -99,6 +99,7 @@ class YouroomController < ApplicationController
 
   def room_registry
     @project_room = ProjectRoom.find_by_project_id(Project.find(params[:project_id]).id)
+    @room_url = @project_room.room_num.blank? ? "http://www.youroom.in/" : "https://www.youroom.in/r/#{@project_room.room_num}/"
   end
 
   def room_update
