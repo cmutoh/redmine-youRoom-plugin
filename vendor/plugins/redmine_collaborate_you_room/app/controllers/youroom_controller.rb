@@ -31,7 +31,7 @@ class YouroomController < ApplicationController
 
     issue_notes = notes
 
-    entry = (room_thread.nil? ? %W|#{tag} #{issue_status} #{issue_priority} #{issue_url} #{issue_subject} #{pj_name}| : %W|#{issue_status} #{issue_priority} \r\nNote: #{issue_notes}|).join("\r\n")
+    entry = (room_thread.nil? ? %W|#{tag} #{issue_status} #{issue_priority} #{issue_subject} #{issue_url} #{pj_name}| : %W|#{issue_status} #{issue_priority} \r\nNote: #{issue_notes}|).join("\r\n")
 
     entry = "#{entry.split(//u)[0,135]}..." if entry.split(//u).size >= 140
 
