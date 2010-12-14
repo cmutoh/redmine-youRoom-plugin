@@ -24,7 +24,7 @@ class YouroomController < ApplicationController
     issue_priority = "Pri: #{issue.priority.name}"
     room_num = ProjectRoom.find_by_project_id(project.id).room_num 
 
-    issue_subject = issue.subject
+    issue_subject = "【#{issue.subject}】"
     issue_subject = issue_subject.split(//u)[0,22] << "..." if issue_subject.split(//u).size > 25 
     pj_name = "- #{project.name} -"
     issue_url = "#{root_url}/issues/#{issue.id}"
