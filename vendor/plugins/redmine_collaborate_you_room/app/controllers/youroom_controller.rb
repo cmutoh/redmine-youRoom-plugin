@@ -24,14 +24,14 @@ class YouroomController < ApplicationController
     issue_priority = "Pri: #{issue.priority.name}"
     room_num = ProjectRoom.find_by_project_id(project.id).room_num 
 
-    issue_subject = issue.subject
+    issue_subject = "【#{issue.subject}】"
     issue_subject = issue_subject.split(//u)[0,22] << "..." if issue_subject.split(//u).size > 25 
     pj_name = "- #{project.name} -"
     issue_url = "#{root_url}/issues/#{issue.id}"
 
     issue_notes = notes
 
-    entry = (room_thread.nil? ? %W|#{tag} #{issue_status} #{issue_priority} #{issue_url} #{issue_subject} #{pj_name}| : %W|#{issue_status} #{issue_priority} \r\nNote: #{issue_notes}|).join("\r\n")
+    entry = (room_thread.nil? ? %W|#{tag} #{issue_status} #{issue_priority} #{issue_subject} #{issue_url} #{pj_name}| : %W|#{issue_status} #{issue_priority} \r\nNote: #{issue_notes}|).join("\r\n")
 
     entry = "#{entry.split(//u)[0,135]}..." if entry.split(//u).size >= 140
 
@@ -90,8 +90,7 @@ class YouroomController < ApplicationController
     #post処理
     post_to_youroom request, session[:notes], session[:issue_id]
 
-    post_issue = Issue.find_all_by_author_id(User.current.id).last
-  #  project_identifier = post_issue.project.identifier
+    post_issue = Issue.find(session[:issue_id])  #  project_identifier = post_issue.project.identifier
     project = post_issue.project
 
     redirect_to(session[:continue] ? { :controller => 'issues', :action => 'new', :project_id => project.id,:issue => {:tracker_id => post_issue.tracker, :parent_issue_id => post_issue.parent_issue_id}.reject {|k,v| v.nil?} } :
@@ -100,6 +99,7 @@ class YouroomController < ApplicationController
 
   def room_registry
     @project_room = ProjectRoom.find_by_project_id(Project.find(params[:project_id]).id)
+    @room_url = @project_room.room_num.blank? ? "http://www.youroom.in/" : "https://www.youroom.in/r/#{@project_room.room_num}/"
   end
 
   def room_update
