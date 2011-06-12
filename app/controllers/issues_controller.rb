@@ -159,7 +159,7 @@ class IssuesController < ApplicationController
           redirect_to params.merge :controller => 'youroom',:action => 'get_access_token',:issue_id => @issue.id
           return
         else 
-          YouroomController.new.post_to_youroom request,params[:notes],@issue.id
+          YouroomController.post_to_youroom request,params[:notes],@issue.id
         end
       end
 
@@ -219,7 +219,7 @@ class IssuesController < ApplicationController
           redirect_to params.merge :controller => 'youroom',:action => 'get_access_token',:issue_id => @issue.id
           return
         else 
-          YouroomController.new.post_to_youroom request,params[:notes],@issue.id
+          YouroomController.post_to_youroom request,params[:notes],@issue.id
         end
       end
 

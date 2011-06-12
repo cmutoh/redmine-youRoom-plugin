@@ -7,7 +7,10 @@ class YouroomController < ApplicationController
   before_filter :find_project,:only => :room_registry
   before_filter :authorize,:only => :room_registry
  
-  def post_to_youroom request, notes, id
+  def self.post_to_youroom request, notes, id
+
+    oauth_consumer = OAuth::Consumer.new(CONSUMER_KEY,CONSUMER_SECRET, :site => "http://youroom.in")
+  
     issue = Issue.find(id)
     project = issue.project
 
@@ -49,7 +52,7 @@ class YouroomController < ApplicationController
       entry = "#{entry.split(//u)[0,135]}..." if entry.split(//u).size >= 140
 
       entry_param =  {"entry[content]"=>"#{entry}"} 
-      post_res = access_token_obj.post("https://www.youroom.in/r/#{room_num}/entries?format=json", entry_param)
+p      post_res = access_token_obj.post("https://www.youroom.in/r/#{room_num}/entries?format=json", entry_param)
       thread_id = JSON.parse(post_res.body)["entry"]["root_id"]
       room_thread.update_attributes(:thread_id => thread_id)
     end
@@ -58,7 +61,11 @@ class YouroomController < ApplicationController
 
 
   def get_access_token
-      callback_url = "#{base_url}/youroom/access_token"
+    
+    default_port = (request.scheme=="http") ? 80:443
+    port = (request.port == default_port) ? "" : ":#{request.port.to_s}"
+    
+      callback_url = "#{request.scheme}://#{request.host}#{port}/youroom/access_token"
       request_token = oauth_consumer.get_request_token(:oauth_callback => callback_url)
       session[:continue] = params[:continue]
       session[:request_token] = request_token.token
@@ -88,7 +95,7 @@ class YouroomController < ApplicationController
     end
 
     #post処理
-    post_to_youroom request, session[:notes], session[:issue_id]
+    self.post_to_youroom request, session[:notes], session[:issue_id]
 
     post_issue = Issue.find(session[:issue_id])  #  project_identifier = post_issue.project.identifier
     project = post_issue.project
@@ -103,7 +110,6 @@ class YouroomController < ApplicationController
   end
 
   def room_update
-    p params
     project_id = Project.find(params[:project_id]).id
     room_num = params[:project_room][:room_num]
     post_check = params[:project_room][:post_check]
@@ -119,12 +125,6 @@ class YouroomController < ApplicationController
   end
 
   private
-  def base_url
-    default_port = (request.scheme=="http") ? 80:443
-    port = (request.port == default_port) ? "" : ":#{request.port.to_s}"
-    "#{request.scheme}://#{request.host}#{port}"
-  end
-
   def oauth_consumer
     OAuth::Consumer.new(CONSUMER_KEY,CONSUMER_SECRET, :site => "http://youroom.in")
   end
