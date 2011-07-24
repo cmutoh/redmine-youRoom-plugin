@@ -1,4 +1,6 @@
 require 'redmine'
+require 'issues_controller_patch'
+require 'issue_hooks'
 
 Redmine::Plugin.register :redmine_collaborate_you_room do
   name 'Redmine Collaborate You Room plugin'
