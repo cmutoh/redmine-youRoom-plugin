@@ -41,7 +41,7 @@ class YouroomController < ApplicationController
 
     context = session[:context]
     context[:controller] = 'issues'
-    context[:action] = 'new'
+    context[:action] = context[:notes] ? 'edit' : 'new'
     redirect_to :params => context
 
   end
