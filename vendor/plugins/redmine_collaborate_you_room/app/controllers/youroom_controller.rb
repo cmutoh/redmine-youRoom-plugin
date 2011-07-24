@@ -4,8 +4,8 @@ require 'json'
 class YouroomController < ApplicationController
   unloadable
  
-  before_filter :find_project,:only => :room_registry
-  before_filter :authorize,:only => :room_registry
+  before_filter :find_project,:only => :register_room
+  before_filter :authorize,:only => :register_room
  
   def get_access_token
     
@@ -46,12 +46,12 @@ class YouroomController < ApplicationController
 
   end
 
-  def room_registry
+  def register_room
     @project_room = ProjectRoom.find_by_project_id(Project.find(params[:project_id]).id)
     @room_url = @project_room.room_num.blank? ? "http://www.youroom.in/" : "https://www.youroom.in/r/#{@project_room.room_num}/"
   end
 
-  def room_update
+  def update_room 
     project_id = Project.find(params[:project_id]).id
     room_num = params[:project_room][:room_num]
     post_check = params[:project_room][:post_check]
@@ -63,7 +63,7 @@ class YouroomController < ApplicationController
     end
     flash[:notice] = "登録しました。"
     @project = Project.find(params[:project_id])
-    redirect_to :action => 'room_registry',:project_id => @project
+    redirect_to :action => 'register_room',:project_id => @project
   end
 
   private
