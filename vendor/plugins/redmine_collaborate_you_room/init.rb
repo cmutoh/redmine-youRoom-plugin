@@ -11,7 +11,7 @@ Redmine::Plugin.register :redmine_collaborate_you_room do
 # author_url 'http://example.com/about'
   
 #  project_module :youroom do
-    permission :set_room_number, :youroom => :room_registry
+    permission :set_room_number, :youroom => :register_room
 #  end
-  menu :project_menu, :set_room_num, { :controller => 'youroom',:action => 'room_registry'}, :caption => 'youRoom',:last => true, :param => :project_id
+  menu :project_menu, :set_room_num, { :controller => 'youroom',:action => 'register_room'}, :caption => 'youRoom',:last => true, :param => :project_id
 end
