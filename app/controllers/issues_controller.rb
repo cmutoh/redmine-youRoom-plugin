@@ -21,7 +21,7 @@ class IssuesController < ApplicationController
   
   before_filter :find_issue, :only => [:show, :edit, :update, :reply]
   before_filter :find_issues, :only => [:bulk_edit, :move, :destroy]
-  before_filter :find_project, :only => [:new, :create, :edit,:update_form, :preview, :auto_complete]
+  before_filter :find_project, :only => [:new, :create, :update_form, :preview, :auto_complete]
   before_filter :authorize, :except => [:index, :changes, :preview, :context_menu]
   before_filter :find_optional_project, :only => [:index, :changes]
   before_filter :check_for_default_issue_status, :only => [:new, :create]
@@ -120,7 +120,6 @@ class IssuesController < ApplicationController
     @edit_allowed = User.current.allowed_to?(:edit_issues, @project)
     @priorities = IssuePriority.all
     @time_entry = TimeEntry.new
-    @project_room = ProjectRoom.find_by_project_id(@project.id)
     respond_to do |format|
       format.html { render :template => 'issues/show.rhtml' }
       format.xml  { render :layout => false }
@@ -133,36 +132,16 @@ class IssuesController < ApplicationController
   # Add a new issue
   # The new issue will be created from an existing one if copy_from parameter is given
   def new
-    @project_room = ProjectRoom.find_by_project_id(@project.id)
     render :action => 'new', :layout => !request.xhr?
   end
 
   def create
     call_hook(:controller_issues_new_before_save, { :params => params, :issue => @issue })
-    @project_room = ProjectRoom.find_by_project_id(@project.id)
-    oauth_token = OauthToken.find_by_user_id(User.current.id)
-    if !params[:youroom].blank?
-      if @project_room.nil? || @project_room.room_num.blank?
-        flash.now[:error] = "youRoomのルーム番号を登録してください"
-        render :action => 'new'
-        return
-      end
-    end
     if @issue.save
       attachments = Attachment.attach_files(@issue, params[:attachments])
       render_attachment_warning_if_needed(@issue)
       flash[:notice] = l(:notice_successful_create)
       call_hook(:controller_issues_new_after_save, { :params => params, :issue => @issue})
-
-      unless params[:youroom].blank?
-        if oauth_token.nil? || oauth_token.access_token.blank?
-          redirect_to params.merge :controller => 'youroom',:action => 'get_access_token',:issue_id => @issue.id
-          return
-        else 
-          YouroomController.post_to_youroom request,params[:notes],@issue.id
-        end
-      end
-
       respond_to do |format|
         format.html {
           redirect_to(params[:continue] ? { :action => 'new', :issue => {:tracker_id => @issue.tracker, :parent_issue_id => @issue.parent_issue_id}.reject {|k,v| v.nil?} } :
@@ -199,29 +178,9 @@ class IssuesController < ApplicationController
   def update
     update_issue_from_params
 
-    @project_room = ProjectRoom.find_by_project_id(@project.id)
-    oauth_token = OauthToken.find_by_user_id(User.current.id)
-    if !params[:youroom].blank?
-      if @project_room.nil? || @project_room.room_num.blank?
-        flash.now[:error] = "youRoomのルーム番号を登録してください"
-        render :action => 'edit'
-        return
-      end
-    end
-
     if @issue.save_issue_with_child_records(params, @time_entry)
       render_attachment_warning_if_needed(@issue)
       flash[:notice] = l(:notice_successful_update) unless @issue.current_journal.new_record?
-
-      unless params[:youroom].blank?
-        if oauth_token.nil? || oauth_token.access_token.blank?
-          #params.merge :controller => 'youroom',:action => 'get_access_token'
-          redirect_to params.merge :controller => 'youroom',:action => 'get_access_token',:issue_id => @issue.id
-          return
-        else 
-          YouroomController.post_to_youroom request,params[:notes],@issue.id
-        end
-      end
 
       respond_to do |format|
         format.html { redirect_back_or_default({:action => 'show', :id => @issue}) }
@@ -435,7 +394,6 @@ class IssuesController < ApplicationController
     end
     render :layout => false
   end
-
   
 private
   def find_issue
@@ -527,6 +485,4 @@ private
       return false
     end
   end
-
-
 end

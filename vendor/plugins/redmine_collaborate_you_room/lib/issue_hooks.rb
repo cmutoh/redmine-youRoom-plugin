@@ -1,15 +1,22 @@
+require 'rubygems'
 require 'oauth'
 require 'json'
 require 'date'
 
 class IssueHook < Redmine::Hook::Listener
-  KEY = "twHMFWVkNhCBQaaaEiCg" 
-  SECRET = "damJeepVucxKtgVVh7yaGpLUoN1nVMrT6pF7cZW4"
-  ACCESS_TOKEN="zgA6pMd2xPbO6iIroCJt"
-  ACCESS_TOKEN_SECRET="P1uofaRZh2wKEMtt6VBqxBSQikKS0nO4QYuiNFvC"
+  MAX_ENTRY_LENGHT = 280
 
+  def controller_issues_new_after_save context
+      post_to_youroom context unless context[:params][:youroom].blank?
+  end
+
+  def controller_issues_edit_after_save context
+      post_to_youroom context unless context[:params][:youroom].blank?
+  end
+
+  private
   def oauth_consumer
-    OAuth::Consumer.new(KEY,SECRET, :site => "http://youroom.in")
+    OAuth::Consumer.new(CONSUMER_KEY,CONSUMER_SECRET, :site => "http://youroom.in")
   end
 
   def base_url request
@@ -18,29 +25,51 @@ class IssueHook < Redmine::Hook::Listener
     "#{request.scheme}://#{request.host}#{port}"
   end
 
-  def controller_issues_new_after_save context
-    request = context[:request]
-    current_user = User.current
+  def post_to_youroom context
     params = context[:params]
-    if params[:youroom]
-      if current_user.access_token.blank? || current_user.access_secret.blank?
-        return false
-      elsif
-        post current_user.access_token,current_user.access_secret
-      end
+    request = context[:request] ||= params[:request]
+    notes = params[:notes]
+    id = context[:issue].id
+
+    issue = Issue.find(id)
+    project = issue.project
+
+    access_token_obj = OAuth::AccessToken.new(oauth_consumer, OauthToken.find_by_user_id(User.current.id).access_token, OauthToken.find_by_user_id(User.current.id).access_secret)
+
+    room_thread =  YouRoomThread.find_by_issue_id(issue.id)
+
+    tag = '#Redmine'
+    issue_status = "St: #{issue.status}"
+    issue_priority = "Pri: #{issue.priority.name}"
+    room_num = ProjectRoom.find_by_project_id(project.id).room_num 
+
+    issue_subject = "【#{issue.subject}】"
+    issue_subject = issue_subject.split(//u)[0,22] << "..." if issue_subject.split(//u).size > 25 
+    pj_name = "- #{project.name} -"
+    issue_url = "#{base_url request}/issues/#{issue.id}"
+
+    issue_notes = notes
+
+    entry = (room_thread.nil? ? %W|#{tag} #{issue_status} #{issue_priority} #{issue_subject} #{issue_url} #{pj_name}| : %W|#{issue_status} #{issue_priority} \r\nNote: #{issue_notes}|).join("\r\n")
+
+    entry = "#{entry.split(//u)[0,MAX_ENTRY_LENGTH-5]}..." if entry.split(//u).size >= MAX_ENTRY_LENGHT
+
+    entry_param =  {"entry[content]"=>"#{entry}"} 
+    entry_param.merge! "entry[parent_id]" => room_thread.thread_id unless room_thread.nil?
+    #POST
+    post_res = access_token_obj.post("https://www.youroom.in/r/#{room_num}/entries?format=json", entry_param)
+
+    if room_thread.nil?
+      thread_id = JSON.parse(post_res.body)["entry"]["root_id"]
+      YouRoomThread.create(:thread_id => thread_id, :issue_id => issue.id)
+    elsif post_res.code == '422'
+      entry = %W|#{tag} #{issue_status} #{issue_priority} #{issue_url} #{issue_subject} #{pj_name}|.join("\r\n")
+
+      entry = "#{entry.split(//u)[0,MAX_ENTRY_LENGTH]}..." if entry.split(//u).size >= MAX_ENTRY_LENGTH 
+      entry_param =  {"entry[content]"=>"#{entry}"} 
+      post_res = access_token_obj.post("https://www.youroom.in/r/#{room_num}/entries?format=json", entry_param)
+      thread_id = JSON.parse(post_res.body)["entry"]["root_id"]
+      room_thread.update_attributes(:thread_id => thread_id)
     end
-  end
-
-
-  def post access_token,access_secret
-   access_token_obj = OAuth::AccessToken.new(oauth_consumer, access_token, access_secret)
-   
-#POST sample
-   param = {:entry => {:content => "post_test #{Date.today}"}} 
-#   p Hash[URI.decode(param.to_query).split('&').map{|item|item.split('=')}] # => {"entry[content]" => "本文", "entry[parent_id]" => "3"}
-
-#   @post_res = @access_token.post('https://www.youroom.in/r/773/entries?format=json', Hash[URI.decode(param.to_query).split('&').map{|item|item.split('=')}])
-  post_res = access_token_obj.post('https://www.youroom.in/r/773/entries?format=json', {"entry[content]"=>"#Redmine \r\n Post test #{Date.today}"})
-
   end
 end
