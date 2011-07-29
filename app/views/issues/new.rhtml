@@ -6,9 +6,6 @@
     <div class="box">
     <%= render :partial => 'issues/form', :locals => {:f => f} %>
     </div>
-    <div>
-      <%= check_box_tag :youroom,value = true,checked = @project_room.nil? ? false : @project_room.post_check %> youRoomへ投稿する
-    </div>
     <br/>
     <%= submit_tag l(:button_create) %>
     <%= submit_tag l(:button_create_and_continue), :name => 'continue' %>

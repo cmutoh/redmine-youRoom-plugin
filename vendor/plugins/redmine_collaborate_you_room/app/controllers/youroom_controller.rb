@@ -106,7 +106,11 @@ p      post_res = access_token_obj.post("https://www.youroom.in/r/#{room_num}/en
 
   def room_registry
     @project_room = ProjectRoom.find_by_project_id(Project.find(params[:project_id]).id)
-    @room_url = @project_room.room_num.blank? ? "http://www.youroom.in/" : "https://www.youroom.in/r/#{@project_room.room_num}/"
+    if @project_room.blank?
+      @room_url="http://www.youroom.in";
+    else  
+      @room_url = @project_room.room_num.blank? ? "http://www.youroom.in/" : "https://www.youroom.in/r/#{@project_room.room_num}/"
+    end
   end
 
   def room_update

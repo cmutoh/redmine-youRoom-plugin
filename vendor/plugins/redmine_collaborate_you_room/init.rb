@@ -1,4 +1,5 @@
 require 'redmine'
+require 'issue_listener'
 
 Redmine::Plugin.register :redmine_collaborate_you_room do
   name 'Redmine Collaborate You Room plugin'
