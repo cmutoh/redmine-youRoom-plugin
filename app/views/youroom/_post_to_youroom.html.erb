@@ -1,0 +1,10 @@
+<hr>
+<div>
+  <%= check_box_tag :youroom,value = true,checked = @project_room.blank? ? false : @project_room.post_check %>post to youRoom 
+</div>
+<script type='text/javascript'>
+var elements = document.body.getElementsBySelector("input#youroom");
+if(elements.size() == 2 ) {
+    elements.first().parentNode.remove();
+}
+</script>

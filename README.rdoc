@@ -1,5 +1,19 @@
-= Redmine
+= collaborate_you_room
 
-Redmine is a flexible project management web application written using Ruby on Rails framework.
+issueを新規作成するときに、youRoomの任意のroomへ投稿できるpluginです。
 
-More details can be found at in the doc directory or on the official website http://www.redmine.org
+
+= インストール
+
+== プラグインのインストール
+
+Redmineをインストールしたディレクトリで下記コマンドを実行
+
+  $ cd vendor/plugins
+  $ git clone https://github.com/asktkhr/redmine_collaborate_you_room.git
+  $ cd ../..
+  $ rake db:migrate:plugins
+
+== プラグイン設定
+
+{Rails.root}/vendor/plugins/collaborate_you_room/lib/oauth_consumer.rbをエディタで開き、youRoomのconsumer_key,consumer_secretを設定
